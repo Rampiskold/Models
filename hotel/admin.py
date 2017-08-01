@@ -3,7 +3,7 @@ from .models import *
 
 
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ["id", "name_hotel", "name_region"]
+    list_display = ["id", "name", "region"]
     search_fields = [field.name for field in Hotel._meta.fields]
 
     class Meta:
@@ -14,7 +14,7 @@ admin.site.register(Hotel, HotelAdmin)
 
 
 class RegionAdmin(admin.ModelAdmin):
-    list_display = ["id", "name_region"]
+    list_display = ["id", "name"]
     search_fields = [field.name for field in Region._meta.fields]
 
     class Meta:

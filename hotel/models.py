@@ -1,45 +1,72 @@
 from django.db import models
-from django.core import validators
+from django.template.defaultfilters import slugify
+from unidecode import unidecode
 
 
 class Region(models.Model):
-    name_region = models.CharField(max_length=256,
-                                   verbose_name="Название региона")
-    description = models.TextField(blank=True, null=True, default=None,
-                                   verbose_name="Описание региона")
-    date_of_creation = models.DateTimeField(auto_now_add=True, auto_now=False)
-    date_of_change = models.DateTimeField(auto_now_add=False, auto_now=True)
-    published_region = models.BooleanField(default=False,
-                                           verbose_name="Публикация")
+    name = models.CharField('название региона',
+                            max_length=256)
+    description = models.TextField('описание региона',
+                                   blank=True,
+                                   null=True,
+                                   default=None)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    is_published = models.BooleanField('публикация',
+                                       default=False)
+    num = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.name_region
+        return self.name
 
     class Meta:
-        ordering = ('name_region',)
+        ordering = ('name',)
         verbose_name = 'Регион'
         verbose_name_plural = 'Регионы'
 
+    def save(self, *args, **kwargs):
+        if not self.num:
+            self.num = counter(self.name, self.num)
+            print(self.num)
+        super(Region, self).save(*args, **kwargs)
+
 
 class Hotel(models.Model):
-    name_hotel = models.CharField(max_length=256, verbose_name="Название отеля")
-    # slug = models.SlugField()
-    name_region = models.ForeignKey(Region, blank=True, null=True, default=None,
-                                    verbose_name="Название региона")
-    address_hotel = models.CharField(max_length=256, verbose_name="Адрес отеля")
-    images_hotel = models.ImageField(upload_to='hotel_images/',
-                                     verbose_name="Фотография отеля")
-    description = models.TextField(blank=True, null=True, default=None,
-                                   verbose_name="Описание отеля")
-    price_hotel = models.IntegerField(default=0, verbose_name="Цена отеля")
-    date_of_creation = models.DateTimeField(auto_now_add=True, auto_now=False)
-    date_of_change = models.DateTimeField(auto_now_add=False, auto_now=True)
-    published_hotel = models.BooleanField(default=False)
+    name = models.CharField('название отеля',
+                            max_length=256)
+    slug = models.SlugField(max_length=40, blank=True, null=True, default=None,
+                            unique=True)
+    region = models.ForeignKey(Region, verbose_name='название региона')
+    address = models.CharField('адрес отеля',
+                               max_length=256)
+    images = models.ImageField('фото',
+                               upload_to='hotel_images/', blank=True, null=True,
+                               default=None)
+    description = models.TextField('описание',
+                                   blank=True, null=True, default=None)
+    price = models.IntegerField('цена отеля', default=0)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    is_published = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name_hotel
+        return self.region.name
 
     class Meta:
-        ordering = ('name_hotel',)
+        ordering = ('name',)
         verbose_name = 'Отель'
         verbose_name_plural = 'Отели'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(unidecode(self.name))
+        super(Hotel, self).save(*args, **kwargs)
+
+
+def counter(sel, n):
+    n = 0
+    all_objects = Hotel.objects.all()
+    for item in all_objects.filter(is_published=True):
+        if str(sel) == str(item):
+            n = n + 1
+    return(n)
