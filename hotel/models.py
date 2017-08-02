@@ -14,7 +14,8 @@ class Region(models.Model):
     updated = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField('публикация',
                                        default=False)
-    num = models.IntegerField('кол-во опубликованных отелей этого региона', default=0)
+    num = models.IntegerField('кол-во опубликованных отелей этого региона',
+                              default=0)
 
     def __str__(self):
         return self.name
